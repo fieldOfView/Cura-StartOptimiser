@@ -51,11 +51,14 @@ class StartOptimiser(Extension, QObject,):
         active_container_ids = set()
 
         container_registry = self._application.getContainerRegistry()
-        container_stacks = container_registry.findContainerStacks()
 
-        for stack in container_stacks:
-            if stack.getMetaDataEntry("type") not in ["machine", "extruder_train"]:
-                continue
+        active_machine_stacks = set(container_registry.findContainerStacks(type = "machine"))
+        active_extruder_stacks = set()
+        for stack in active_machine_stacks:
+            extruders = container_registry.findContainerStacks(type = "extruder_train", machine = stack.id)
+            active_extruder_stacks.update(extruders)
+
+        for stack in active_machine_stacks | active_extruder_stacks:
             active_stack_ids.add(stack.id)
             active_definition_ids.add(stack.definition.id)
 
