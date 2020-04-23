@@ -4,6 +4,7 @@
 from UM.Extension import Extension
 from cura.CuraApplication import CuraApplication
 from UM.Message import Message
+from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 
 from PyQt5.QtCore import QObject
 
@@ -24,10 +25,10 @@ class StartOptimiser(Extension, QObject,):
         self.setMenuName(catalog.i18nc("@item:inmenu", "Startup Optimiser"))
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Disable loading unused configuration files"), self.optimiseStartup)
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Load only 'generic' materials"), self.removeBrandedMaterials)
+        self.addMenuItem("", lambda: None)
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Restore all configuration files"), self.resetOptimisations)
 
         self._local_container_provider_patches = None
-
         self._application.pluginsLoaded.connect(self._onPluginsLoaded)
 
         self._application.getPreferences().addPreference("start_optimiser/id_blacklist", "")
@@ -37,6 +38,10 @@ class StartOptimiser(Extension, QObject,):
     def _onPluginsLoaded(self) -> None:
         local_container_provider = self._application.getPluginRegistry().getPluginObject("LocalContainerProvider")
         self._local_container_provider_patches = LocalContainerProviderPatches.LocalContainerProviderPatches(local_container_provider)
+
+        configuration_error_message = ConfigurationErrorMessage.getInstance()
+        configuration_error_message.addAction("startoptimiser_clean", name = catalog.i18nc("@action:button", "Disable affected profiles"), icon = None, description = "Disable loading the corrupted configuration files but attempt to leave the rest intact.")
+        configuration_error_message.actionTriggered.connect(self._configurationErrorMessageActionTriggered)
 
     def optimiseStartup(self) -> None:
         local_container_ids = self._local_container_provider_patches.getLocalContainerIds()
@@ -111,3 +116,9 @@ class StartOptimiser(Extension, QObject,):
         self._message.hide()
         self._message.setText(catalog.i18nc("@info:status", "On the next start of Cura %d configuration files will be skipped") % len(black_list))
         self._message.show()
+
+    def _configurationErrorMessageActionTriggered(self, _, action_id):
+        if action_id == "startoptimiser_clean":
+            configuration_error_message = ConfigurationErrorMessage.getInstance()
+            self._addToBlackList(configuration_error_message._faulty_containers)
+            configuration_error_message.hide()
