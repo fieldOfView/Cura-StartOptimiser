@@ -33,7 +33,7 @@ class StartOptimiser(Extension, QObject,):
         self._application.pluginsLoaded.connect(self._onPluginsLoaded)
         self._application.getContainerRegistry().containerAdded.connect(self._onContainerAdded)
 
-        self._application.getPreferences().addPreference("start_optimiser/id_blacklist", "")
+        self._application.getPreferences().addPreference("start_optimiser/container_blacklist", "")
 
         self._message = Message(title=catalog.i18nc("@info:title", "Startup Optimiser"))
 
@@ -47,10 +47,10 @@ class StartOptimiser(Extension, QObject,):
 
     def _onContainerAdded(self, container: "ContainerInterface") -> None:
         # make sure that this container also gets loaded the next time Cura starts
-        black_list = set(self._application.getPreferences().getValue("start_optimiser/id_blacklist").split(";"))
+        black_list = set(self._application.getPreferences().getValue("start_optimiser/container_blacklist").split(";"))
         try:
             black_list.remove(container.id)
-            self._application.getPreferences().setValue("start_optimiser/id_blacklist", ";".join(list(black_list)))
+            self._application.getPreferences().setValue("start_optimiser/container_blacklist", ";".join(list(black_list)))
         except KeyError:
             pass
 
@@ -117,15 +117,15 @@ class StartOptimiser(Extension, QObject,):
         self._addToBlackList(unused_branded_materials)
 
     def resetOptimisations(self) -> None:
-        self._application.getPreferences().setValue("start_optimiser/id_blacklist", "")
+        self._application.getPreferences().setValue("start_optimiser/container_blacklist", "")
         self._message.hide()
         self._message.setText(catalog.i18nc("@info:status", "Please restart Cura to restore loading all configuration files"))
         self._message.show()
 
     def _addToBlackList(self, container_ids:Set[str]) -> None:
-        black_list = set(self._application.getPreferences().getValue("start_optimiser/id_blacklist").split(";"))
+        black_list = set(self._application.getPreferences().getValue("start_optimiser/container_blacklist").split(";"))
         black_list.update(container_ids)
-        self._application.getPreferences().setValue("start_optimiser/id_blacklist", ";".join(list(black_list)))
+        self._application.getPreferences().setValue("start_optimiser/container_blacklist", ";".join(list(black_list)))
 
         self._message.hide()
         self._message.setText(catalog.i18nc("@info:status", "On the next start of Cura %d configuration files will be skipped") % len(black_list))
