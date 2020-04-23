@@ -24,8 +24,9 @@ class StartOptimiser(Extension, QObject,):
         self._application = CuraApplication.getInstance()
 
         self.setMenuName(catalog.i18nc("@item:inmenu", "Startup Optimiser"))
-        self.addMenuItem(catalog.i18nc("@item:inmenu", "Disable loading unused configuration files"), self.optimiseStartup)
-        self.addMenuItem(catalog.i18nc("@item:inmenu", "Load only 'generic' materials"), self.removeBrandedMaterials)
+
+        self.addMenuItem(catalog.i18nc("@item:inmenu", "Disable loading unused configuration files"), self.removeUnusedContainers)
+        self.addMenuItem(catalog.i18nc("@item:inmenu", "Load only 'generic' and custom materials"), self.removeBrandedMaterials)
         self.addMenuItem("", lambda: None)
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Restore all configuration files"), self.resetOptimisations)
 
@@ -54,7 +55,7 @@ class StartOptimiser(Extension, QObject,):
         except KeyError:
             pass
 
-    def optimiseStartup(self) -> None:
+    def removeUnusedContainers(self) -> None:
         local_container_ids = self._local_container_provider_patches.getLocalContainerIds()
 
         active_stack_ids = set()
@@ -112,6 +113,9 @@ class StartOptimiser(Extension, QObject,):
         for metadata in materials_metadata:
             if "brand" not in metadata or metadata["brand"].lower() != "generic":
                 branded_materials.add(metadata["base_file"])
+            if not container_registry.getInstance().isReadOnly(metadata["id"]):
+                # keep custom materials
+                keep_branded_materials.add(metadata["base_file"])
 
         unused_branded_materials = branded_materials - keep_branded_materials
         self._addToBlackList(unused_branded_materials)
