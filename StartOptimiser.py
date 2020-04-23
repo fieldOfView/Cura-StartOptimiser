@@ -4,6 +4,7 @@
 from UM.Extension import Extension
 from cura.CuraApplication import CuraApplication
 from UM.Message import Message
+from UM.Logger import Logger
 from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 
 from PyQt5.QtCore import QObject
@@ -35,6 +36,8 @@ class StartOptimiser(Extension, QObject,):
         self._application.getContainerRegistry().containerAdded.connect(self._onContainerAdded)
 
         self._application.getPreferences().addPreference("start_optimiser/container_blacklist", "")
+        black_list = set(self._application.getPreferences().getValue("start_optimiser/container_blacklist").split(";"))
+        Logger.log("i", "%d containers are blacklisted by StartOptimiser" % len(black_list))
 
         self._message = Message(title=catalog.i18nc("@info:title", "Startup Optimiser"))
 
