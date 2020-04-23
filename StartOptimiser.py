@@ -134,5 +134,5 @@ class StartOptimiser(Extension, QObject,):
     def _configurationErrorMessageActionTriggered(self, _, action_id):
         if action_id == "startoptimiser_clean":
             configuration_error_message = ConfigurationErrorMessage.getInstance()
-            self._addToBlackList(configuration_error_message._faulty_containers)
             configuration_error_message.hide()
+            self._addToBlackList(configuration_error_message._faulty_containers)
