@@ -7,10 +7,11 @@ from UM.Message import Message
 from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 
 from PyQt5.QtCore import QObject
-
-from typing import Set
-
 from . import LocalContainerProviderPatches
+
+from typing import Set, TYPE_CHECKING
+if TYPE_CHECKING:
+    from UM.Settings.ContainerInterface import ContainerInterface
 
 from UM.i18n import i18nCatalog
 catalog = i18nCatalog("cura")
@@ -30,6 +31,7 @@ class StartOptimiser(Extension, QObject,):
 
         self._local_container_provider_patches = None
         self._application.pluginsLoaded.connect(self._onPluginsLoaded)
+        self._application.getContainerRegistry().containerAdded.connect(self._onContainerAdded)
 
         self._application.getPreferences().addPreference("start_optimiser/id_blacklist", "")
 
@@ -42,6 +44,15 @@ class StartOptimiser(Extension, QObject,):
         configuration_error_message = ConfigurationErrorMessage.getInstance()
         configuration_error_message.addAction("startoptimiser_clean", name = catalog.i18nc("@action:button", "Disable affected profiles"), icon = None, description = "Disable loading the corrupted configuration files but attempt to leave the rest intact.")
         configuration_error_message.actionTriggered.connect(self._configurationErrorMessageActionTriggered)
+
+    def _onContainerAdded(self, container: "ContainerInterface") -> None:
+        # make sure that this container also gets loaded the next time Cura starts
+        black_list = set(self._application.getPreferences().getValue("start_optimiser/id_blacklist").split(";"))
+        try:
+            black_list.remove(container.id)
+            self._application.getPreferences().setValue("start_optimiser/id_blacklist", ";".join(list(black_list)))
+        except KeyError:
+            pass
 
     def optimiseStartup(self) -> None:
         local_container_ids = self._local_container_provider_patches.getLocalContainerIds()
