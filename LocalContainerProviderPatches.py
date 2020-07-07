@@ -10,7 +10,7 @@ class LocalContainerProviderPatches():
         self._local_container_provider = local_container_provider
         self._local_container_provider._pathToId = self._pathToId
 
-        self._local_container_ids = set()
+        self._local_container_ids = set()  # type: Set[str]
         self._id_blacklist = Application.getInstance().getPreferences().getValue("start_optimiser/container_blacklist").split(";")
 
     def getLocalContainerIds(self) -> Set[str]:

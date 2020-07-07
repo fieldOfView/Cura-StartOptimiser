@@ -10,7 +10,7 @@ from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 from PyQt5.QtCore import QObject
 from . import LocalContainerProviderPatches
 
-from typing import Set, TYPE_CHECKING
+from typing import Set, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from UM.Settings.ContainerInterface import ContainerInterface
 
@@ -31,7 +31,7 @@ class StartOptimiser(Extension, QObject,):
         self.addMenuItem("", lambda: None)
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Restore all configuration files"), self.resetOptimisations)
 
-        self._local_container_provider_patches = None
+        self._local_container_provider_patches = None  # type: Optional[LocalContainerProviderPatches.LocalContainerProviderPatches]
         self._application.pluginsLoaded.connect(self._onPluginsLoaded)
         self._application.getContainerRegistry().containerAdded.connect(self._onContainerAdded)
 
@@ -46,7 +46,12 @@ class StartOptimiser(Extension, QObject,):
         self._local_container_provider_patches = LocalContainerProviderPatches.LocalContainerProviderPatches(local_container_provider)
 
         configuration_error_message = ConfigurationErrorMessage.getInstance()
-        configuration_error_message.addAction("startoptimiser_clean", name = catalog.i18nc("@action:button", "Disable affected profiles"), icon = None, description = "Disable loading the corrupted configuration files but attempt to leave the rest intact.")
+        configuration_error_message.addAction(
+            action_id="startoptimiser_clean",
+            name=catalog.i18nc("@action:button", "Disable affected profiles"),
+            icon="",
+            description=catalog.i18nc("@action:tooltip", "Disable loading the corrupted configuration files but attempt to leave the rest intact.")
+        )
         configuration_error_message.actionTriggered.connect(self._configurationErrorMessageActionTriggered)
 
     def _onContainerAdded(self, container: "ContainerInterface") -> None:
@@ -59,6 +64,9 @@ class StartOptimiser(Extension, QObject,):
             pass
 
     def removeUnusedContainers(self) -> None:
+        if not self._local_container_provider_patches:
+            return
+
         local_container_ids = self._local_container_provider_patches.getLocalContainerIds()
 
         active_stack_ids = set()
