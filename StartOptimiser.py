@@ -122,6 +122,8 @@ class StartOptimiser(Extension, QObject,):
 
         materials_metadata = container_registry.findInstanceContainersMetadata(type="material")
         for metadata in materials_metadata:
+            if metadata["id"] == "empty_material":
+                continue
             if "brand" not in metadata or metadata["brand"].lower() != "generic":
                 branded_materials.add(metadata["base_file"])
             if not container_registry.getInstance().isReadOnly(metadata["id"]):
