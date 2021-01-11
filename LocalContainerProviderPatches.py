@@ -1,4 +1,5 @@
 from UM.Application import Application
+from UM.Logger import Logger
 from UM.MimeTypeDatabase import MimeType, MimeTypeDatabase
 from UM.Settings.ContainerRegistry import ContainerRegistry
 
