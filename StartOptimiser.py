@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Aldo Hoeben / fieldOfView
+# Copyright (c) 2022 Aldo Hoeben / fieldOfView
 # StartOptimiser is released under the terms of the AGPLv3 or higher.
 
 from UM.Extension import Extension
@@ -7,7 +7,11 @@ from UM.Message import Message
 from UM.Logger import Logger
 from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 
-from PyQt5.QtCore import QObject
+try:
+    from PyQt6.QtCore import QObject
+except ImportError:
+    from PyQt5.QtCore import QObject
+
 from . import LocalContainerProviderPatches
 
 from typing import Set, Optional, TYPE_CHECKING
