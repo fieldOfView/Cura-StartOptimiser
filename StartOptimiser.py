@@ -8,8 +8,12 @@ from UM.Logger import Logger
 from UM.ConfigurationErrorMessage import ConfigurationErrorMessage
 
 try:
+    from cura.ApplicationMetadata import CuraSDKVersion
+except ImportError: # Cura <= 3.6
+    CuraSDKVersion = "6.0.0"
+if CuraSDKVersion >= "8.0.0":
     from PyQt6.QtCore import QObject
-except ImportError:
+else:
     from PyQt5.QtCore import QObject
 
 from . import LocalContainerProviderPatches
